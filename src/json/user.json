@@ -1,0 +1,19 @@
+{
+    "users": [
+      {
+        "username": "adminUser",
+        "email": "admin@example.com",
+        "password": "adminPassword",
+        "role": "admin",
+        "is_activated": true
+      },
+      {
+        "username": "moderatorUser",
+        "email": "moderator@example.com",
+        "password": "moderatorPassword",
+        "role": "moderator",
+        "is_activated": true
+      }
+    ]
+}
+  
