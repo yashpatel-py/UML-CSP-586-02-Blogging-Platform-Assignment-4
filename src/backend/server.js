@@ -45,6 +45,28 @@ app.post('/api/posts', async (req, res) => {
   }
 });
 
+// Blog Headers
+app.post('/api/sections', async (req, res) => {
+  try {
+    const { sections } = req.body;
+    const promises = sections.map((section) =>
+      esClient.index({
+        index: 'blogsections',
+        body: section,
+      })
+    );
+
+    await Promise.all(promises);
+
+    await esClient.indices.refresh({ index: 'blogsections' });
+
+    res.status(200).json({ message: 'Sections created successfully' });
+  } catch (error) {
+    console.error('Error creating sections:', error);
+    res.status(500).json({ message: 'Error creating sections', error: error.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });

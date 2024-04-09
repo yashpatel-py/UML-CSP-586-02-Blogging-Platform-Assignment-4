@@ -8,34 +8,52 @@ import FeaturedPost from './FeaturedPost';
 import Footer from './Footer';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
-import ChatBot from './ChatBot'; // Import the ChatBot component
+import ChatBot from './ChatBot';
 import Fab from '@mui/material/Fab';
-import ChatIcon from '@mui/icons-material/Chat'; // This is a chat bubble icon
+import ChatIcon from '@mui/icons-material/Chat';
 
 const defaultTheme = createTheme();
+
 export default function Blog() {
   const [blogPosts, setBlogPosts] = useState([]);
+  const [blogSections, setBlogSections] = useState([]); // Now we will fetch and set blog sections
   const [loading, setLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
-    const localBlogSections = localStorage.getItem('blogSections');
-    if (!localBlogSections) {
-      const blogSections = [
-        { title: 'Academic Resources', url: '/academic-resources' },
-        { title: 'Career Services', url: '/career-services' },
-        { title: 'Campus', url: '/campus' },
-        { title: 'Local Community Resources', url: '/local-community-resources' },
-        { title: 'Social', url: '/social' },
-        { title: 'Sports', url: '/sports' },
-        { title: 'Health and Wellness', url: '/health' },
-        { title: 'Technology', url: '/technology' },
-        { title: 'Travel', url: '/travel' },
-        { title: 'Alumni', url: '/alumni' },
-      ];
-      localStorage.setItem('blogSections', JSON.stringify(blogSections));
-    }
 
+    // This section is fetching the blogSections and passing to the header component
+    const fetchSections = async () => {
+      try {
+        const response = await fetch('http://localhost:9200/blogsections/_search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: {
+              match_all: {},
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const sections = result.hits.hits.map((hit) => ({
+          title: hit._source.title,
+          url: hit._source.url,
+        }));
+
+        setBlogSections(sections);
+      } catch (error) {
+        console.error('There was an error fetching the sections:', error);
+      }
+    };
+
+    // Fetching the posts
     const fetchPosts = async () => {
       try {
         setLoading(true);
@@ -69,12 +87,9 @@ export default function Blog() {
       }
     };
 
+    fetchSections();
     fetchPosts();
   }, []);
-
-  // Retrieve the blog sections from localStorage
-  const blogSections = JSON.parse(localStorage.getItem('blogSections'));
-  console.log(blogSections);
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -100,10 +115,8 @@ export default function Blog() {
         </main>
 
         {showChat && <ChatBot onClose={() => setShowChat(false)} />}
-        {/* Rest of your content */}
         <Footer title="Footer" description="Something here to give the footer a purpose!" />
       </Container>
-      {showChat && <ChatBot onClose={() => setShowChat(false)} />}
       <Fab color="primary" aria-label="chat" onClick={() => setShowChat(true)} style={{
         position: 'fixed',
         bottom: '20px',
