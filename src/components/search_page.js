@@ -1,4 +1,3 @@
-// SearchPage.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Box, TextField, Button, CircularProgress, Typography, Container, Grid } from '@mui/material';
@@ -76,7 +75,8 @@ function SearchPage() {
                     <Grid container spacing={4} justifyContent="center">
                         {results.length > 0 ? (
                             results.map((post) => (
-                                <FeaturedPost key={post._id} post={post} />
+                                // Ensure that post.id is unique
+                                <FeaturedPost key={post.id} post={post} />
                             ))
                         ) : (
                             !isLoading && query && (
