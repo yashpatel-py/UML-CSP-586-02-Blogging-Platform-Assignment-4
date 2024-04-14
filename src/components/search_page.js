@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, TextField, Button, CircularProgress, Typography, Container, Grid } from '@mui/material';
-import FeaturedPost from './FeaturedPost'; // Ensure this import path is correct
+import { Box, TextField, CircularProgress, Typography, Container, Grid } from '@mui/material';
+import FeaturedPost from './FeaturedPost';
 import Header from './Header';
+import _ from 'lodash'; // Ensure lodash is installed
 
 function SearchPage() {
     const [query, setQuery] = useState('');
@@ -10,36 +11,43 @@ function SearchPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleSearch = async () => {
-        setIsLoading(true);
-        setError('');
-        setResults([]);
+    useEffect(() => {
+        const debouncedSearch = _.debounce(async (searchQuery) => {
+            if (!searchQuery.trim()) {
+                setResults([]);
+                setError('');
+                setIsLoading(false);
+                return;
+            }
 
-        if (!query.trim()) {
-            setError('Please enter a search term.');
-            setIsLoading(false);
-            return;
-        }
+            setIsLoading(true);
+            setError('');
 
-        try {
-            const response = await axios.post('http://localhost:9200/blogposts/_search', {
-                query: {
-                    match: {
-                        title: query
+            try {
+                const response = await axios.post('http://localhost:9200/blogposts/_search', {
+                    query: {
+                        match: {
+                            title: searchQuery
+                        }
                     }
-                }
-            });
+                });
+                setResults(response.data.hits.hits.map(hit => ({ ...hit._source, id: hit._id })));
+            } catch (error) {
+                console.error('Failed to search posts:', error);
+                setError('Failed to search posts. Please try again.');
+            } finally {
+                setIsLoading(false);
+            }
+        }, 300); // Debounce the search
 
-            setResults(response.data.hits.hits.map(hit => ({ ...hit._source, id: hit._id })));
-        } catch (error) {
-            console.error('Failed to search posts:', error);
-            setError('Failed to search posts. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+        debouncedSearch(query);
 
-    // Retrieve the blog sections from localStorage
+        // Cleanup function to cancel the debounce on component unmount
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [query]); // Only re-run the effect if query changes
+
     const blogSections = JSON.parse(localStorage.getItem('blogSections') || '[]');
 
     return (
@@ -59,14 +67,7 @@ function SearchPage() {
                         variant="outlined"
                         sx={{ flex: 1, mr: 1 }}
                     />
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleSearch}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? <CircularProgress size={24} /> : 'Search'}
-                    </Button>
+                    {isLoading && <CircularProgress size={24} />}
                 </Box>
                 {error && <Typography color="error" align="center">{error}</Typography>}
                 {isLoading ? (
@@ -75,7 +76,6 @@ function SearchPage() {
                     <Grid container spacing={4} justifyContent="center">
                         {results.length > 0 ? (
                             results.map((post) => (
-                                // Ensure that post.id is unique
                                 <FeaturedPost key={post.id} post={post} />
                             ))
                         ) : (
