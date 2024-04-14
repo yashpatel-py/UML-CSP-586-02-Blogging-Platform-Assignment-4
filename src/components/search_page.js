@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Box, TextField, CircularProgress, Typography, Container, Grid } from '@mui/material';
 import FeaturedPost from './FeaturedPost';
 import Header from './Header';
-import _ from 'lodash'; // Ensure lodash is installed
+import _ from 'lodash';
 
 function SearchPage() {
     const [query, setQuery] = useState('');
@@ -11,42 +11,59 @@ function SearchPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        const debouncedSearch = _.debounce(async (searchQuery) => {
-            if (!searchQuery.trim()) {
-                setResults([]);
-                setError('');
-                setIsLoading(false);
-                return;
-            }
+    const search = async (searchQuery) => {
+        setIsLoading(true);
+        setError('');
 
-            setIsLoading(true);
-            setError('');
+        // Determine if the search is a prefix search or a full multi-match search
+        const trimmedQuery = searchQuery.trim();
+        const isSingleWord = !trimmedQuery.includes(" "); // Prefix search for a single word
 
-            try {
-                const response = await axios.post('http://localhost:9200/blogposts/_search', {
-                    query: {
-                        match: {
-                            title: searchQuery
-                        }
+        try {
+            const queryType = isSingleWord
+                ? {
+                    prefix: {
+                        title: trimmedQuery.toLowerCase()
                     }
-                });
-                setResults(response.data.hits.hits.map(hit => ({ ...hit._source, id: hit._id })));
-            } catch (error) {
-                console.error('Failed to search posts:', error);
-                setError('Failed to search posts. Please try again.');
-            } finally {
-                setIsLoading(false);
-            }
-        }, 300); // Debounce the search
+                }
+                : {
+                    multi_match: {
+                        query: trimmedQuery,
+                        fields: ["title"],
+                        type: "cross_fields",
+                        operator: "and"
+                    }
+                };
 
-        debouncedSearch(query);
+            const response = await axios.post('http://localhost:9200/blogposts/_search', {
+                query: queryType
+            });
 
-        // Cleanup function to cancel the debounce on component unmount
+            setResults(response.data.hits.hits.map(hit => ({ ...hit._source, id: hit._id })));
+        } catch (error) {
+            console.error('Failed to search posts:', error);
+            setError('Failed to search posts. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Debounce the search function
+    const debouncedSearch = React.useCallback(_.debounce(search, 300), []);
+
+    useEffect(() => {
+        if (query) {
+            debouncedSearch(query);
+        } else {
+            setResults([]);
+            setIsLoading(false);
+        }
+
+        // Cleanup function to cancel the debounce
         return () => {
             debouncedSearch.cancel();
         };
-    }, [query]); // Only re-run the effect if query changes
+    }, [query, debouncedSearch]);
 
     const blogSections = JSON.parse(localStorage.getItem('blogSections') || '[]');
 
