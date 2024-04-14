@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Box, TextField, CircularProgress, Typography, Container, Grid } from '@mui/material';
 import FeaturedPost from './FeaturedPost';
@@ -11,30 +11,29 @@ function SearchPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const search = async (searchQuery) => {
+    // useCallback to memoize the search function so it doesn't get recreated on every render
+    const search = useCallback(async (searchQuery) => {
         setIsLoading(true);
         setError('');
 
-        // Determine if the search is a prefix search or a full multi-match search
+        // Trim the query and check its length to determine the search type
         const trimmedQuery = searchQuery.trim();
-        const isSingleWord = !trimmedQuery.includes(" "); // Prefix search for a single word
+        const queryType = trimmedQuery.length === 1
+            ? {
+                prefix: {
+                    title: trimmedQuery.toLowerCase()
+                }
+            }
+            : {
+                multi_match: {
+                    query: trimmedQuery,
+                    fields: ["title"],
+                    type: "cross_fields",
+                    operator: "and"
+                }
+            };
 
         try {
-            const queryType = isSingleWord
-                ? {
-                    prefix: {
-                        title: trimmedQuery.toLowerCase()
-                    }
-                }
-                : {
-                    multi_match: {
-                        query: trimmedQuery,
-                        fields: ["title"],
-                        type: "cross_fields",
-                        operator: "and"
-                    }
-                };
-
             const response = await axios.post('http://localhost:9200/blogposts/_search', {
                 query: queryType
             });
@@ -46,11 +45,14 @@ function SearchPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []); // Dependencies are empty since `setIsLoading`, `setError`, and `setResults` are stable
 
-    // Debounce the search function
-    const debouncedSearch = React.useCallback(_.debounce(search, 300), []);
+    // Debounce the search function using useCallback and include `search` as a dependency
+    const debouncedSearch = useCallback(_.debounce((query) => {
+        search(query);
+    }, 300), [search]);
 
+    // useEffect for handling the search functionality
     useEffect(() => {
         if (query) {
             debouncedSearch(query);
@@ -59,21 +61,23 @@ function SearchPage() {
             setIsLoading(false);
         }
 
-        // Cleanup function to cancel the debounce
+        // Cleanup function to cancel the debounce when the component unmounts or query changes
         return () => {
             debouncedSearch.cancel();
         };
-    }, [query, debouncedSearch]);
+    }, [query, debouncedSearch]); // `query` and `debouncedSearch` are dependencies
 
+    // Parse blog sections from localStorage
     const blogSections = JSON.parse(localStorage.getItem('blogSections') || '[]');
 
+    // Render the component
     return (
         <Container>
-            <Header title="Blog Platform" sections={blogSections} />
+            <Header title="Blog Search" sections={blogSections} />
             <Box sx={{ my: 4 }}>
-                <Typography variant="h4" gutterBottom align="center">
+                {/* <Typography variant="h4" gutterBottom align="center">
                     Blog Search
-                </Typography>
+                </Typography> */}
                 <Box display="flex" justifyContent="center" alignItems="center" my={2}>
                     <TextField
                         fullWidth
