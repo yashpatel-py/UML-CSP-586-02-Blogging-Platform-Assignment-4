@@ -4,6 +4,12 @@ import Toolbar from "@mui/material/Toolbar";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import SearchIcon from "@mui/icons-material/Search";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+import EditIcon from "@mui/icons-material/Edit";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import LoginIcon from "@mui/icons-material/Login";
+import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
 import { Link as RouterLink } from "react-router-dom";
@@ -26,8 +32,7 @@ function Header(props) {
   const handleSignOut = () => {
     localStorage.removeItem("loggedInUser");
     setUser(null);
-    setAnchorEl(null); // Close the menu
-    // Additional sign-out actions such as redirecting to the home page
+    setAnchorEl(null);
   };
 
   const handleMenu = (event) => {
@@ -91,15 +96,15 @@ function Header(props) {
                 component={RouterLink}
                 to="/create-post"
               >
-                Create Blog Post
+                <AddCircleOutlineIcon sx={{ mr: 1 }} /> Create Blog Post
               </MenuItem>
-              {user.role === "admin" && ( // Render if user is admin
+              {user.role === "admin" && (
                 <MenuItem
                   onClick={handleClose}
                   component={RouterLink}
                   to="/manage-users"
                 >
-                  Manage All Users
+                  <SupervisorAccountIcon sx={{ mr: 1 }} /> Manage All Users
                 </MenuItem>
               )}
               {user.role === "moderator" && (
@@ -108,22 +113,24 @@ function Header(props) {
                   component={RouterLink}
                   to="/manage-posts"
                 >
-                  Manage All Posts
+                  <EditIcon sx={{ mr: 1 }} /> Manage All Posts
                 </MenuItem>
               )}
-              <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
+              <MenuItem onClick={handleSignOut}>
+                <ExitToAppIcon sx={{ mr: 1 }} /> Sign Out
+              </MenuItem>
             </Menu>
           </>
         ) : (
           <>
             <RouterLink to="/login" style={{ textDecoration: "none" }}>
               <Button variant="outlined" size="small" sx={{ margin: "0 5px" }}>
-                Login
+                <LoginIcon sx={{ mr: 1 }} /> Login
               </Button>
             </RouterLink>
             <RouterLink to="/signup" style={{ textDecoration: "none" }}>
               <Button variant="outlined" size="small">
-                Sign up
+                <PersonAddAltIcon sx={{ mr: 1 }} /> Sign up
               </Button>
             </RouterLink>
           </>

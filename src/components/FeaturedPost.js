@@ -6,6 +6,8 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
+import Button from '@mui/material/Button';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 function FeaturedPost(props) {
   const { post } = props;
@@ -55,14 +57,15 @@ function FeaturedPost(props) {
           >
             {post.content}
           </Typography>
-          <Typography
-            variant="subtitle1"
+          <Button
+            variant="contained"
             color="primary"
             onClick={handleReadMoreClick}
-            style={{ cursor: "pointer" }}
+            endIcon={<ArrowForwardIcon />} // Add the icon to the button
+            sx={{ mt: 2 }}
           >
-            Continue reading...
-          </Typography>
+            Read Post
+          </Button>
         </CardContent>
         {post.imageUrl && (
           <CardMedia

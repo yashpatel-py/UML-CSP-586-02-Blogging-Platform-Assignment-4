@@ -1,4 +1,3 @@
-// Import necessary modules/components
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -9,37 +8,41 @@ import {
   Box,
   Card,
   CardContent,
+  Divider,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Header from "./Header";
 import { styled } from "@mui/material/styles";
-// import Alert from "@mui/material/Alert";
-import axios from "axios";
 import Snackbar from '@mui/material/Snackbar';
-import ChatIcon from '@mui/icons-material/Chat'; // This is a chat bubble icon
+import ChatIcon from '@mui/icons-material/Chat';
 import Fab from '@mui/material/Fab';
-import ChatBot from './ChatBot'; // Import the ChatBot component
+import ChatBot from './ChatBot';
 import CardMedia from '@mui/material/CardMedia';
+import axios from "axios";
+import SendIcon from '@mui/icons-material/Send';
+import ReplyIcon from '@mui/icons-material/Reply';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import LabelIcon from '@mui/icons-material/Label';
 
-// Create a default MUI theme
 const defaultTheme = createTheme();
 
-// Styled components for customizing Card styles
 const CommentCard = styled(Card)(({ theme }) => ({
   marginBottom: theme.spacing(2),
-  "&:last-child": {
-    marginBottom: 0,
-  },
+  padding: theme.spacing(2),
+  backgroundColor: theme.palette.grey[100],
+  boxShadow: theme.shadows[2],
 }));
 
 const ReplyCard = styled(Card)(({ theme }) => ({
   marginLeft: theme.spacing(4),
   marginTop: theme.spacing(1),
-  background: theme.palette.grey[100],
+  padding: theme.spacing(1, 2),
+  backgroundColor: theme.palette.grey[200],
+  boxShadow: theme.shadows[1],
 }));
 
-// Main component for reading a post
 const ReadPost = () => {
   const { postId } = useParams();
   const [post, setPost] = useState(null);
@@ -49,7 +52,7 @@ const ReadPost = () => {
   const [replyContent, setReplyContent] = useState("");
   const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
   const sections = [];
-  const [suggestion] = useState('');
+  const [suggestion, setSuggestion] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [showChat, setShowChat] = useState(false);
@@ -75,7 +78,8 @@ const ReadPost = () => {
 
       if (response.data.choices && response.data.choices.length > 0) {
         const suggestion = response.data.choices[0].message.content;
-        setNewComment(suggestion); // Directly set the newComment to the suggestion
+        setNewComment(suggestion);
+        setSuggestion(suggestion);
         setSnackbarMessage('Suggestion fetched successfully');
         setOpenSnackbar(true);
       } else {
@@ -89,8 +93,6 @@ const ReadPost = () => {
     }
   };
 
-
-  // Function to close snackbar
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -98,7 +100,6 @@ const ReadPost = () => {
     setOpenSnackbar(false);
   };
 
-  // Effect hook to fetch post and comments data
   useEffect(() => {
     const fetchPostAndComments = async () => {
       try {
@@ -124,7 +125,6 @@ const ReadPost = () => {
     }
   }, [postId]);
 
-  // Handle reply submission
   const handleReplySubmit = (commentId) => {
     if (!replyContent.trim()) {
       return;
@@ -155,7 +155,6 @@ const ReadPost = () => {
     setShowReplyField(null);
   };
 
-  // Function to submit a new comment
   const submitComment = () => {
     if (!newComment.trim()) {
       setSnackbarMessage("Comment cannot be blank.");
@@ -178,108 +177,101 @@ const ReadPost = () => {
     setNewComment("");
   };
 
-  // Render UI
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />
-      <Container>
-        {/* Header */}
+      <Container maxWidth="lg">
         <Header sections={sections} title="Blog Platform" />
 
-        {/* Post Details */}
-        <Typography variant="h3" gutterBottom>
-          {post && post.title}
-        </Typography>
-        <Typography variant="subtitle1" gutterBottom>
-          Author: {post && post.author}
-        </Typography>
-        <Typography variant="subtitle1" gutterBottom>
-          Category: {post && post.category}
-        </Typography>
-        <Typography variant="subtitle1" gutterBottom>
-          Created At: {post && post.createdAt}
-        </Typography>
-        <Typography variant="subtitle1" gutterBottom>
-          Content: {post && post.content}
-        </Typography>
-        {post && post.imageUrl && (
-  <CardMedia
-    component="img"
-    image={post.imageUrl}
-    alt={post.title}
-    sx={{ width: '100%', height: 'auto' }}
-  />
-)}
-
-        {/* Comments Section */}
-        <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-          Comments
-        </Typography>
-        {comments.map((comment) => (
-          <CommentCard key={comment.id}>
-            {/* Comment Content */}
+        {post && (
+          <Card raised sx={{ mb: 4 }}>
+            {post.imageUrl && (
+              <CardMedia
+                component="img"
+                image={post.imageUrl}
+                alt={post.title}
+                sx={{ maxHeight: 700, objectFit: 'cover' }}
+              />
+            )}
             <CardContent>
-              <Typography variant="subtitle2">{comment.author}</Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {comment.content}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {new Date(comment.createdAt).toLocaleString()}
-              </Typography>
 
-              {/* Reply Button */}
-              {loggedInUser && (
-                <Button
-                  size="small"
-                  onClick={() => setShowReplyField(showReplyField === comment.id ? null : comment.id)}
-                >
-                  Reply
-                </Button>
-              )}
-
-              {/* Reply Field */}
-              {showReplyField === comment.id && (
-                <Box mt={2}>
-                  <TextField
-                    label="Write a reply"
-                    variant="outlined"
-                    fullWidth
-                    multiline
-                    rows={2}
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    margin="normal"
-                  />
-                  <Button
-                    onClick={() => handleReplySubmit(comment.id)}
-                    variant="contained"
-                    size="small"
-                    sx={{ mt: 1 }}
-                  >
-                    Submit Reply
-                  </Button>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AccountCircleIcon color="action" />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                    Author: <span style={{ fontWeight: 'normal' }}>{post.author}</span>
+                  </Typography>
                 </Box>
-              )}
-
-              {/* Replies */}
-              {comment.replies && comment.replies.map((reply) => (
-                <ReplyCard key={reply.id}>
-                  <CardContent>
-                    <Typography variant="subtitle2">{reply.author}</Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {reply.content}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {new Date(reply.createdAt).toLocaleString()}
-                    </Typography>
-                  </CardContent>
-                </ReplyCard>
-              ))}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <LabelIcon color="action" />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                    Category: <span style={{ fontWeight: 'normal' }}>{post.category}</span>
+                  </Typography>
+                  <CalendarTodayIcon color="action" />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                    Created At: <span style={{ fontWeight: 'normal' }}>{new Date(post.createdAt).toLocaleDateString()}</span>
+                  </Typography>
+                </Box>
+              </Box>
+              <Typography variant="h4" gutterBottom component="div" align="center">
+                {post.title}
+              </Typography>
+              <Typography variant="body1">
+                {post.content}
+              </Typography>
             </CardContent>
-          </CommentCard>
+          </Card>
+        )}
+
+        <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Comments</Typography>
+
+        {comments.map((comment, index) => (
+          <Box key={comment.id}>
+            <CommentCard>
+              <CardContent>
+                <Typography variant="subtitle2">{comment.author}</Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>{comment.content}</Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>{new Date(comment.createdAt).toLocaleString()}</Typography>
+
+                {loggedInUser && (
+                  <Button size="small" onClick={() => setShowReplyField(showReplyField === comment.id ? null : comment.id)}
+                    startIcon={<ReplyIcon />}
+                  >Reply</Button>
+                )}
+
+                {showReplyField === comment.id && (
+                  <Box mt={2}>
+                    <TextField
+                      label="Write a reply"
+                      variant="outlined"
+                      fullWidth
+                      multiline
+                      rows={2}
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      margin="normal"
+                    />
+                    <Button onClick={() => handleReplySubmit(comment.id)} variant="contained" size="small" sx={{ mt: 1 }}
+                      startIcon={<ReplyIcon />}
+                    >Submit Reply</Button>
+                  </Box>
+                )}
+
+                {comment.replies && comment.replies.map((reply) => (
+                  <ReplyCard key={reply.id}>
+                    <CardContent>
+                      <Typography variant="subtitle2">{reply.author}</Typography>
+                      <Typography variant="body2" color="text.secondary" gutterBottom>{reply.content}</Typography>
+                      <Typography variant="body2" color="text.secondary" gutterBottom>{new Date(reply.createdAt).toLocaleString()}</Typography>
+                    </CardContent>
+                  </ReplyCard>
+                ))}
+              </CardContent>
+            </CommentCard>
+            {index < comments.length - 1 && <Divider sx={{ my: 2 }} />}
+          </Box>
         ))}
 
-        {/* Comment Form */}
         {loggedInUser && (
           <Box my={2}>
             <TextField
@@ -292,36 +284,24 @@ const ReadPost = () => {
               onChange={(e) => setNewComment(e.target.value)}
               margin="normal"
             />
-            <Button onClick={submitComment} variant="contained" sx={{ mt: 1 }}>
+            <Button
+              startIcon={<SendIcon />}
+              onClick={submitComment}
+              variant="contained"
+              sx={{ mt: 1 }}
+            >
               Post Comment
             </Button>
-
-            {/* Get Comment Suggestion Button */}
-            <Button onClick={() => fetchCommentSuggestion(post.title, post.category)} variant="contained" color="primary" sx={{ mt: 1 }}>
-              Get Comment Suggestion
-            </Button>
-            {suggestion && (
-              <Typography variant="body1" gutterBottom>
-                Suggested Comment: {suggestion}
-              </Typography>
-            )}
-
-            {/* Snackbar for notifications */}
-            <Snackbar
-              open={openSnackbar}
-              autoHideDuration={6000}
-              onClose={handleCloseSnackbar}
-              message={snackbarMessage}
-            />
+            <Button onClick={() => fetchCommentSuggestion(post.title, post.category)} variant="contained" color="primary" sx={{ ml: 1, mt: 1 }}>Get Comment Suggestion</Button>
+            {suggestion && <Typography variant="body1" gutterBottom>Suggested Comment: {suggestion}</Typography>}
+            <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar} message={snackbarMessage} />
           </Box>
         )}
       </Container>
+
       {showChat && <ChatBot onClose={() => setShowChat(false)} />}
-      <Fab color="primary" aria-label="chat" onClick={() => setShowChat(true)} style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-      }}>
+
+      <Fab color="primary" aria-label="chat" onClick={() => setShowChat(true)} style={{ position: 'fixed', bottom: '20px', right: '20px' }}>
         <ChatIcon />
       </Fab>
     </ThemeProvider>

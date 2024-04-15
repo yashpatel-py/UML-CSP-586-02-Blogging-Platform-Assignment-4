@@ -8,6 +8,7 @@ import Alert from "@mui/material/Alert";
 import CssBaseline from "@mui/material/CssBaseline";
 import Typography from "@mui/material/Typography";
 import Header from "./Header";
+import LoginIcon from '@mui/icons-material/Login';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -100,7 +101,12 @@ const Login = () => {
               value={credentials.password}
               onChange={handleChange}
             />
-            <Button type="submit" variant="contained" sx={{ mt: 3, mb: 2 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              startIcon={<LoginIcon />}
+            >
               Login
             </Button>
           </Box>
