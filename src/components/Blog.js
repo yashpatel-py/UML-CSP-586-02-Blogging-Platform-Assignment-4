@@ -8,7 +8,7 @@ import FeaturedPost from './FeaturedPost';
 import Footer from './Footer';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
-import ChatBot from './ChatBot'; // Import the ChatBot component
+import ChatBot from './ChatBot'; // Import the hatBot component
 import Fab from '@mui/material/Fab';
 import ChatIcon from '@mui/icons-material/Chat'; // This is a chat bubble icon
 

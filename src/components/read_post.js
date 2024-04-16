@@ -14,17 +14,17 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Header from "./Header";
 import { styled } from "@mui/material/styles";
-import Snackbar from '@mui/material/Snackbar';
-import ChatIcon from '@mui/icons-material/Chat';
-import Fab from '@mui/material/Fab';
-import ChatBot from './ChatBot';
-import CardMedia from '@mui/material/CardMedia';
+import Snackbar from "@mui/material/Snackbar";
+import ChatIcon from "@mui/icons-material/Chat";
+import Fab from "@mui/material/Fab";
+import ChatBot from "./ChatBot";
+import CardMedia from "@mui/material/CardMedia";
 import axios from "axios";
-import SendIcon from '@mui/icons-material/Send';
-import ReplyIcon from '@mui/icons-material/Reply';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import LabelIcon from '@mui/icons-material/Label';
+import SendIcon from "@mui/icons-material/Send";
+import ReplyIcon from "@mui/icons-material/Reply";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import LabelIcon from "@mui/icons-material/Label";
 
 const defaultTheme = createTheme();
 
@@ -52,49 +52,51 @@ const ReadPost = () => {
   const [replyContent, setReplyContent] = useState("");
   const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
   const sections = [];
-  const [suggestion, setSuggestion] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [showChat, setShowChat] = useState(false);
 
   const fetchCommentSuggestion = async (blogTitle, blogCategory) => {
     try {
       const openaiApiKey = process.env.REACT_APP_OPENAI_API_KEY;
 
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: `Suggest a comment for the blog post titled "${blogTitle}" in the category "${blogCategory}":`
-          }
-        ]
-      }, {
-        headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
-          'Content-Type': 'application/json'
+      const response = await axios.post(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: `Suggest a comment for the blog post titled "${blogTitle}" in the category "${blogCategory}":`,
+            },
+          ],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${openaiApiKey}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
 
       if (response.data.choices && response.data.choices.length > 0) {
         const suggestion = response.data.choices[0].message.content;
-        setNewComment(suggestion);
-        setSuggestion(suggestion);
-        setSnackbarMessage('Suggestion fetched successfully');
+        setNewComment(suggestion); // Directly set the newComment to the suggestion
+        setSnackbarMessage("Suggestion fetched successfully");
         setOpenSnackbar(true);
       } else {
-        setSnackbarMessage('Failed to get suggestion');
+        setSnackbarMessage("Failed to get suggestion");
         setOpenSnackbar(true);
       }
     } catch (error) {
-      console.error('Error fetching comment suggestion from OpenAI:', error);
-      setSnackbarMessage('Failed to get suggestion');
+      console.error("Error fetching comment suggestion from OpenAI:", error);
+      setSnackbarMessage("Failed to get suggestion");
       setOpenSnackbar(true);
     }
   };
 
   const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setOpenSnackbar(false);
@@ -103,15 +105,17 @@ const ReadPost = () => {
   useEffect(() => {
     const fetchPostAndComments = async () => {
       try {
-        const response = await axios.get(`http://localhost:9200/blogposts/_doc/${postId}`);
+        const response = await axios.get(
+          `http://localhost:9200/blogposts/_doc/${postId}`
+        );
         if (response.data.found) {
           setPost(response.data._source);
         } else {
-          console.log('Post not found');
+          console.log("Post not found");
           setPost(null);
         }
       } catch (error) {
-        console.error('Error fetching post:', error);
+        console.error("Error fetching post:", error);
         setPost(null);
       }
 
@@ -136,17 +140,24 @@ const ReadPost = () => {
       createdAt: new Date().toISOString(),
     };
 
-    setComments(comments.map(comment =>
-      comment.id === commentId
-        ? { ...comment, replies: [...comment.replies, replyObject] }
-        : comment
-    ));
+    setComments(
+      comments.map((comment) =>
+        comment.id === commentId
+          ? { ...comment, replies: [...comment.replies, replyObject] }
+          : comment
+      )
+    );
 
     const storedComments = JSON.parse(localStorage.getItem("comments")) || {};
     const postComments = storedComments[postId] || [];
-    const commentIndex = postComments.findIndex(comment => comment.id === commentId);
+    const commentIndex = postComments.findIndex(
+      (comment) => comment.id === commentId
+    );
     if (commentIndex !== -1) {
-      postComments[commentIndex].replies = [...postComments[commentIndex].replies, replyObject];
+      postComments[commentIndex].replies = [
+        ...postComments[commentIndex].replies,
+        replyObject,
+      ];
     }
     storedComments[postId] = postComments;
     localStorage.setItem("comments", JSON.stringify(storedComments));
@@ -169,7 +180,7 @@ const ReadPost = () => {
       replies: [],
     };
 
-    setComments(prevComments => [...prevComments, comment]);
+    setComments((prevComments) => [...prevComments, comment]);
     const allComments = JSON.parse(localStorage.getItem("comments")) || {};
     allComments[postId] = [...(allComments[postId] || []), comment];
     localStorage.setItem("comments", JSON.stringify(allComments));
@@ -190,53 +201,83 @@ const ReadPost = () => {
                 component="img"
                 image={post.imageUrl}
                 alt={post.title}
-                sx={{ maxHeight: 700, objectFit: 'cover' }}
+                sx={{ maxHeight: 700, objectFit: "cover" }}
               />
             )}
             <CardContent>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  my: 2,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <AccountCircleIcon color="action" />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                    Author: <span style={{ fontWeight: 'normal' }}>{post.author}</span>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    Author:{" "}
+                    <span style={{ fontWeight: "normal" }}>{post.author}</span>
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <LabelIcon color="action" />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                    Category: <span style={{ fontWeight: 'normal' }}>{post.category}</span>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    Category:{" "}
+                    <span style={{ fontWeight: "normal" }}>
+                      {post.category}
+                    </span>
                   </Typography>
                   <CalendarTodayIcon color="action" />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                    Created At: <span style={{ fontWeight: 'normal' }}>{new Date(post.createdAt).toLocaleDateString()}</span>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    Created At:{" "}
+                    <span style={{ fontWeight: "normal" }}>
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </span>
                   </Typography>
                 </Box>
               </Box>
-              <Typography variant="h4" gutterBottom component="div" align="center">
+              <Typography
+                variant="h4"
+                gutterBottom
+                component="div"
+                align="center"
+              >
                 {post.title}
               </Typography>
-              <Typography variant="body1">
-                {post.content}
-              </Typography>
+              <Typography variant="body1">{post.content}</Typography>
             </CardContent>
           </Card>
         )}
 
-        <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Comments</Typography>
+        <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+          Comments
+        </Typography>
 
         {comments.map((comment, index) => (
           <Box key={comment.id}>
             <CommentCard>
               <CardContent>
                 <Typography variant="subtitle2">{comment.author}</Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>{comment.content}</Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>{new Date(comment.createdAt).toLocaleString()}</Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  {comment.content}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  {new Date(comment.createdAt).toLocaleString()}
+                </Typography>
 
                 {loggedInUser && (
-                  <Button size="small" onClick={() => setShowReplyField(showReplyField === comment.id ? null : comment.id)}
+                  <Button
+                    size="small"
+                    onClick={() =>
+                      setShowReplyField(
+                        showReplyField === comment.id ? null : comment.id
+                      )
+                    }
                     startIcon={<ReplyIcon />}
-                  >Reply</Button>
+                  >
+                    Reply
+                  </Button>
                 )}
 
                 {showReplyField === comment.id && (
@@ -251,21 +292,42 @@ const ReadPost = () => {
                       onChange={(e) => setReplyContent(e.target.value)}
                       margin="normal"
                     />
-                    <Button onClick={() => handleReplySubmit(comment.id)} variant="contained" size="small" sx={{ mt: 1 }}
+                    <Button
+                      onClick={() => handleReplySubmit(comment.id)}
+                      variant="contained"
+                      size="small"
+                      sx={{ mt: 1 }}
                       startIcon={<ReplyIcon />}
-                    >Submit Reply</Button>
+                    >
+                      Submit Reply
+                    </Button>
                   </Box>
                 )}
 
-                {comment.replies && comment.replies.map((reply) => (
-                  <ReplyCard key={reply.id}>
-                    <CardContent>
-                      <Typography variant="subtitle2">{reply.author}</Typography>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>{reply.content}</Typography>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>{new Date(reply.createdAt).toLocaleString()}</Typography>
-                    </CardContent>
-                  </ReplyCard>
-                ))}
+                {comment.replies &&
+                  comment.replies.map((reply) => (
+                    <ReplyCard key={reply.id}>
+                      <CardContent>
+                        <Typography variant="subtitle2">
+                          {reply.author}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          gutterBottom
+                        >
+                          {reply.content}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          gutterBottom
+                        >
+                          {new Date(reply.createdAt).toLocaleString()}
+                        </Typography>
+                      </CardContent>
+                    </ReplyCard>
+                  ))}
               </CardContent>
             </CommentCard>
             {index < comments.length - 1 && <Divider sx={{ my: 2 }} />}
@@ -292,16 +354,33 @@ const ReadPost = () => {
             >
               Post Comment
             </Button>
-            <Button onClick={() => fetchCommentSuggestion(post.title, post.category)} variant="contained" color="primary" sx={{ ml: 1, mt: 1 }}>Get Comment Suggestion</Button>
-            {suggestion && <Typography variant="body1" gutterBottom>Suggested Comment: {suggestion}</Typography>}
-            <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar} message={snackbarMessage} />
+            <Button
+              onClick={() => fetchCommentSuggestion(post.title, post.category)}
+              variant="contained"
+              color="primary"
+              sx={{ ml: 1, mt: 1 }}
+            >
+              Get Comment Suggestion
+            </Button>
+            <Snackbar
+              open={openSnackbar}
+              autoHideDuration={6000}
+              onClose={handleCloseSnackbar}
+              message={snackbarMessage}
+
+            />
           </Box>
         )}
       </Container>
 
       {showChat && <ChatBot onClose={() => setShowChat(false)} />}
 
-      <Fab color="primary" aria-label="chat" onClick={() => setShowChat(true)} style={{ position: 'fixed', bottom: '20px', right: '20px' }}>
+      <Fab
+        color="primary"
+        aria-label="chat"
+        onClick={() => setShowChat(true)}
+        style={{ position: "fixed", bottom: "20px", right: "20px" }}
+      >
         <ChatIcon />
       </Fab>
     </ThemeProvider>

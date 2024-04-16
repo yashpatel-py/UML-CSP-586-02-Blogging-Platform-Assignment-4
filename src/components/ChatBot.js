@@ -15,7 +15,7 @@ function ChatBot({ onClose }) {
     }, [chatHistory]);
 
     const fetchOpenAIResponse = async (userInput) => {
-        const openaiApiKey = process.env.REACT_APP_OPENAI_API_KEY; // Updated line
+        const openaiApiKey = process.env.REACT_APP_OPENAI_API_KEY;
         try {
             const response = await axios.post(
                 'https://api.openai.com/v1/chat/completions',
