@@ -15,6 +15,7 @@ import Link from "@mui/material/Link";
 import { Link as RouterLink } from "react-router-dom";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import LinkIcon from '@mui/icons-material/Link';
 
 function Header(props) {
   const { sections, title } = props;
@@ -97,6 +98,14 @@ function Header(props) {
                 to="/create-post"
               >
                 <AddCircleOutlineIcon sx={{ mr: 1 }} /> Create Blog Post
+              </MenuItem>
+              <MenuItem
+                onClick={handleClose}
+                component={RouterLink}
+                to="/acivity_recomend"
+              >
+                <LinkIcon sx={{ color: 'action.active', mr: 1 }} />
+                Activity Recommendation
               </MenuItem>
               {user.role === "admin" && (
                 <MenuItem

@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { Client } = require('@elastic/elasticsearch');
 const cors = require('cors');
+const axios = require('axios');
 
 const app = express();
 // Increase the limit if needed
@@ -67,6 +68,28 @@ app.post('/api/sections', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+// SERP API
+app.get('/api/proxy', async (req, res) => {
+  const { q, location } = req.query;
+  try {
+    // Replace 'your_serp_api_key' with your actual SERP API key
+    const serpApiKey = process.env.SERP_API_KEY;
+    const serpResponse = await axios.get('https://serpapi.com/search.json', {
+      params: {
+        q: q,
+        location: location,
+        hl: 'en',
+        gl: 'us',
+        google_domain: 'google.com',
+        api_key: serpApiKey,
+        engine: 'google',
+      }
+    });
+    // Send back the results to the client
+    res.json(serpResponse.data);
+  } catch (error) {
+    // Handle errors: for example, you can log them and send a generic error message to the client
+    console.error('Error fetching SERP data:', error);
+    res.status(500).send('Error fetching data');
+  }
 });

@@ -9,6 +9,7 @@ import ManagePosts from './components/Manage-Posts';
 import ManageUsers from './components/manage-users';
 import SubscribePage from './components/subscribe_page';
 import SearchPage from './components/search_page';
+import ActivityRecommendation from './components/ActivityRecommendation';
 
 const App = () => {
   return (
@@ -23,6 +24,7 @@ const App = () => {
         <Route path="/manage-users" element={<ManageUsers />} />
         <Route path="/subscribe-page" element={<SubscribePage />} />
         <Route path="/search-page" element={<SearchPage />} />
+        <Route path="/acivity_recomend" element={<ActivityRecommendation />} />
       </Routes>
     </Router>
   );
